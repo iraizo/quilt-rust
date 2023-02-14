@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use jni::{JavaVM, JNIEnv, sys::{JNIInvokeInterface_, jsize}, AttachGuard};
+use jni::{JavaVM, JNIEnv, sys::{JNIInvokeInterface_, jsize}, AttachGuard, objects::{JValue, JObject}};
 use windows::{Win32::{Foundation::HINSTANCE, System::LibraryLoader::GetProcAddress}, s};
 use anyhow::{Result, anyhow};
 
@@ -11,8 +11,7 @@ type JNI_GetCreatedJavaVMs = fn(
 ) -> i32;
 
 pub struct Interop<'a> {
-    vm: &'a mut JavaVM,
-    env: AttachGuard<'a>
+    pub env: AttachGuard<'a>
 }
 
 impl Interop<'_> {
@@ -20,7 +19,7 @@ impl Interop<'_> {
     /// ## Arguments 
     /// 
     /// * `handle` - A HINSTANCE of the jvm module from the current process. 
-    fn new(handle: HINSTANCE) -> Result<Self> {
+    pub fn new(handle: HINSTANCE) -> Result<Self> {
         unsafe {
         let jni_get_created_java_vms: JNI_GetCreatedJavaVMs = std::mem::transmute(GetProcAddress(handle, s!("JNI_GetCreatedJavaVMs")).unwrap());
 
@@ -35,14 +34,38 @@ impl Interop<'_> {
         }
 
         let vm = &mut *(vms as *mut JavaVM);
-        let guard = vm.attach_current_thread().unwrap();
+        let guard = vm.attach_current_thread()?;
 
 
 
-        Ok(Self {
-            vm,
+        return Ok(Self {
             env: guard,
-        })
+        });
+    }
     }
 }
+
+
+/// This is supposed to get codegenned later on which is on my TODO list using Tiny v2 mappings hopefully.
+struct MinecraftVersion<'a> {
+    pub env: &'a JNIEnv<'a>,
+    pub instance: JObject<'a>
+    // TODO: add missing (java/minecraft) fields
+}
+
+impl MinecraftVersion<'_> {
+    pub fn new<'a>(env: &JNIEnv<'a>) -> Result<Self> {
+        // find class
+        let class = env.find_class("s")?;
+
+        // call minecraftVersion.create over JNI
+        Ok(Self {
+            env,
+            instance: env.call_static_method(class, "a", "()Lab;", &[])?.l()?
+        })
+    }
+
+    pub fn getName(&self, instance: JObject) {
+        self.env.call_method(instance, "getName", "()Ljava/lang/String;", &[]).unwrap();
+    }
 }
