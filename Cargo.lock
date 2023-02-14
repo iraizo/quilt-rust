@@ -123,17 +123,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mc-test"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "jni",
- "log",
- "pretty_env_logger",
- "windows",
-]
-
-[[package]]
 name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -163,6 +152,17 @@ name = "quick-error"
 version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
+
+[[package]]
+name = "quilt-rs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "jni",
+ "log",
+ "pretty_env_logger",
+ "windows",
+]
 
 [[package]]
 name = "quote"
